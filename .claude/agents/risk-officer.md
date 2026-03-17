@@ -102,7 +102,7 @@ Create risk register entry for each finding via:
 # persistence/severity_logger.py
 log_finding(
     agent_name="risk-officer",
-    team="command",
+    team="command",  # Div 1 / Team 1 — Command & Governance
     severity="HIGH",  # Aggregated severity
     category="risk-register",
     title="Risk: SQL injection in login endpoint (RG-001)",

@@ -22,7 +22,7 @@ module.exports = {
   // -------------------------------------------------------------------------
   coordinator: {
     name: "master-orchestrator",
-    agentFile: ".claude/agents/ciso-orchestrator.md",
+    agentFile: ".claude/agents/master-orchestrator.md",
     role: "queen",
     responsibilities: [
       "scope-definition",
@@ -38,9 +38,30 @@ module.exports = {
   // Teams (worker pools)
   // -------------------------------------------------------------------------
   teams: [
+    // -----------------------------------------------------------------------
+    // Division 1 — Security (16 agents, 5 teams)
+    // -----------------------------------------------------------------------
+    {
+      id: "command",
+      label: "Div 1 / Team 1 — Command & Governance",
+      parallel: true,
+      maxWorkers: 2,
+      agents: [
+        {
+          name: "security-program-manager",
+          agentFile: ".claude/agents/security-program-manager.md",
+          tools: ["bash", "view", "grep"],
+        },
+        {
+          name: "risk-officer",
+          agentFile: ".claude/agents/risk-officer.md",
+          tools: ["bash", "view", "grep"],
+        },
+      ],
+    },
     {
       id: "software-security",
-      label: "Team 2 — Software Security",
+      label: "Div 1 / Team 2 — Software Security",
       parallel: true,           // All 4 run simultaneously
       maxWorkers: 4,
       agents: [
@@ -68,7 +89,7 @@ module.exports = {
     },
     {
       id: "infra-cloud",
-      label: "Team 3 — Infrastructure",
+      label: "Div 1 / Team 3 — Infrastructure",
       parallel: true,
       maxWorkers: 3,
       agents: [
@@ -91,7 +112,7 @@ module.exports = {
     },
     {
       id: "compliance",
-      label: "Team 4 — Compliance",
+      label: "Div 1 / Team 4 — Compliance",
       parallel: true,
       maxWorkers: 3,
       agents: [
@@ -114,7 +135,7 @@ module.exports = {
     },
     {
       id: "incident-response",
-      label: "Team 5 — Incident Response",
+      label: "Div 1 / Team 5 — Incident Response",
       parallel: true,
       maxWorkers: 3,
       agents: [
@@ -137,7 +158,7 @@ module.exports = {
     },
     {
       id: "business-development",
-      label: "Division 2 — Business Development",
+      label: "Div 2 — Business Development",
       parallel: true,
       maxWorkers: 4,
       agents: [
@@ -165,7 +186,7 @@ module.exports = {
     },
     {
       id: "client-delivery",
-      label: "Division 3 — Client Delivery",
+      label: "Div 3 — Client Delivery",
       parallel: true,
       maxWorkers: 4,
       agents: [
@@ -193,7 +214,7 @@ module.exports = {
     },
     {
       id: "development",
-      label: "Division 4 — Development & Engineering",
+      label: "Div 4 — Development & Engineering",
       parallel: true,
       maxWorkers: 4,
       agents: [
@@ -221,7 +242,7 @@ module.exports = {
     },
     {
       id: "data-analytics",
-      label: "Division 5 — Data & Analytics",
+      label: "Div 5 — Data & Analytics",
       parallel: true,
       maxWorkers: 4,
       agents: [
@@ -249,7 +270,7 @@ module.exports = {
     },
     {
       id: "marketing",
-      label: "Division 6 — Marketing & Content",
+      label: "Div 6 — Marketing & Content",
       parallel: true,
       maxWorkers: 4,
       agents: [
@@ -277,7 +298,7 @@ module.exports = {
     },
     {
       id: "automation",
-      label: "Division 7 — Automation & Integration",
+      label: "Div 7 — Automation & Integration",
       parallel: true,
       maxWorkers: 4,
       agents: [
@@ -335,7 +356,7 @@ module.exports = {
   workflows: {
     "full-audit": {
       description: "Full 16-agent security audit across all teams",
-      sequence: ["software-security", "infra-cloud", "compliance", "incident-response"],
+      sequence: ["command", "software-security", "infra-cloud", "compliance", "incident-response"],
       parallel: false,          // Teams run in sequence, agents within teams parallel
       synthesize: true,
     },
@@ -395,7 +416,7 @@ module.exports = {
     },
     "full-service": {
       description: "All 7 divisions — complete business operations",
-      sequence: ["software-security", "infra-cloud", "compliance", "incident-response", "business-development", "client-delivery", "development", "data-analytics", "marketing", "automation"],
+      sequence: ["command", "software-security", "infra-cloud", "compliance", "incident-response", "business-development", "client-delivery", "development", "data-analytics", "marketing", "automation"],
       parallel: false,
       synthesize: true,
     },

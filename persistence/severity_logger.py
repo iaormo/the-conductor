@@ -22,12 +22,27 @@ DB_PATH = Path(__file__).parent / "audit.db"
 
 VALID_SEVERITIES = {"CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"}
 VALID_CATEGORIES = {
+    # Security (Division 1)
     "injection", "authentication", "authorization", "cryptography",
     "misconfiguration", "secrets-exposure", "dependency", "api-security",
     "network", "iam", "compliance", "privacy", "policy", "forensics",
     "threat", "incident", "infrastructure", "code-quality",
-    "lead-generation", "prospecting", "outreach", "crm", "project-management",
-    "billing", "client-reporting", "sow-contract", "other"
+    "broken-access-control", "vulnerable-dependency", "hardcoded-secret",
+    "governance", "risk-register", "dashboard",
+    # Business Development (Division 2)
+    "lead-generation", "prospecting", "outreach", "crm",
+    # Client Delivery (Division 3)
+    "project-management", "billing", "client-reporting", "sow-contract",
+    # Development (Division 4)
+    "code-generation", "code-review", "cicd", "documentation",
+    # Data & Analytics (Division 5)
+    "data-extraction", "business-intelligence", "market-research", "competitive-intel",
+    # Marketing (Division 6)
+    "content", "email-marketing", "social-media", "seo",
+    # Automation (Division 7)
+    "workflow", "api-integration", "scheduling", "alerting",
+    # Catch-all
+    "other",
 }
 
 # ANSI colors for terminal output
@@ -150,6 +165,19 @@ def init_db(db_path=None):
         )
     """)
 
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS finding_status_history (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            finding_id  INTEGER NOT NULL,
+            old_status  TEXT,
+            new_status  TEXT NOT NULL,
+            changed_by  TEXT DEFAULT 'system',
+            notes       TEXT,
+            created_at  TEXT NOT NULL,
+            FOREIGN KEY (finding_id) REFERENCES findings(id)
+        )
+    """)
+
     conn.commit()
     return conn
 
@@ -214,6 +242,7 @@ def log_finding(
 
     category = category.lower()
     if category not in VALID_CATEGORIES:
+        print(f"  {YELLOW}[WARN]{RESET} Invalid category '{category}' from {agent_name} — defaulting to 'other'", file=sys.stderr)
         category = "other"
 
     conn = init_db(db_path)

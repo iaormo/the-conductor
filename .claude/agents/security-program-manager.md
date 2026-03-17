@@ -93,7 +93,7 @@ Log every finding via:
 # persistence/severity_logger.py
 log_finding(
     agent_name="security-program-manager",
-    team="command",
+    team="command",  # Div 1 / Team 1 — Command & Governance
     severity="MEDIUM",  # CRITICAL|HIGH|MEDIUM|LOW|INFO
     category="governance",
     title="Missing security documentation: SECURITY.md not found",
