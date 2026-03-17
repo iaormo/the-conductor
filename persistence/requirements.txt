@@ -1,0 +1,9 @@
+# the-conductor persistence layer
+# All stdlib — no external dependencies required for core functionality
+# Optional: install these for enhanced features
+
+# pip-audit: dependency vulnerability scanning (used by policy-enforcer)
+# pip install pip-audit
+
+# rich: enhanced terminal output (optional)
+# pip install rich

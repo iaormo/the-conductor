@@ -1,0 +1,85 @@
+name: Skill Audit — Block unsafe skills on PR
+
+on:
+  pull_request:
+    paths:
+      - 'plugins/**/*.md'
+      - '.claude/skills/**'
+      - '**SKILL.md'
+
+jobs:
+  audit:
+    name: Scan SKILL.md files for security risks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run skill auditor
+        run: |
+          python3 tools/skill_auditor.py \
+            --path plugins/ \
+            --recursive \
+            --output skill_audit_report.json \
+            --fail-on-warn
+        # Exit codes:
+        #   0 = all PASS
+        #   1 = WARN found (with --fail-on-warn)
+        #   2 = BLOCK found (always fails)
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skill-audit-report
+          path: skill_audit_report.json
+
+      - name: Comment PR with results
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('skill_audit_report.json', 'utf8'));
+            const blocked = report.results.filter(r => r.status === 'BLOCK');
+            const warned = report.results.filter(r => r.status === 'WARN');
+
+            let body = `## the-conductor Skill Audit Failed\n\n`;
+            body += `| Status | Count |\n|--------|-------|\n`;
+            body += `| ✅ PASS | ${report.summary.pass} |\n`;
+            body += `| ⚠️ WARN | ${report.summary.warn} |\n`;
+            body += `| ❌ BLOCK | ${report.summary.block} |\n\n`;
+
+            if (blocked.length > 0) {
+              body += `### ❌ Blocked files (must fix before merge)\n`;
+              for (const r of blocked) {
+                body += `\n**\`${r.file}\`**\n`;
+                for (const f of r.findings) {
+                  if (f.severity === 'BLOCK') {
+                    body += `- \`${f.rule}\`${f.line ? ` line ${f.line}` : ''}: ${f.content || f.detail || ''}\n`;
+                  }
+                }
+              }
+            }
+
+            if (warned.length > 0) {
+              body += `\n### ⚠️ Files needing review\n`;
+              for (const r of warned) {
+                body += `- \`${r.file}\` — ${r.findings.length} warning(s)\n`;
+              }
+            }
+
+            body += `\nRun locally: \`python3 tools/skill_auditor.py --path plugins/ --recursive\``;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });

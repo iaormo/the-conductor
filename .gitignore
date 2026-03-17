@@ -1,0 +1,52 @@
+# Database — never commit audit data
+persistence/audit.db
+persistence/*.db
+persistence/*.db-shm
+persistence/*.db-wal
+
+# Audit reports — generated, not source
+audit_report.json
+audit_report.html
+skill_audit_report.json
+*_audit_report.*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Node (ruflo)
+node_modules/
+.npm/
+*.log
+npm-debug.log*
+
+# Secrets — these should NEVER be committed
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Claude Code runtime (don't commit session state)
+.claude/settings.local.json
+.claude/plugins/cache/
+.claude/plugins/installed_plugins.json
