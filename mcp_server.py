@@ -668,6 +668,9 @@ def resource_divisions() -> str:
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    import uvicorn
     port = int(os.environ.get("PORT", 8080))
-    print(f"the-conductor MCP server starting on port {port}")
-    mcp.run(transport="sse", port=port)
+    host = os.environ.get("HOST", "0.0.0.0")
+    print(f"the-conductor MCP server starting on {host}:{port}")
+    app = mcp.sse_app()
+    uvicorn.run(app, host=host, port=port)
