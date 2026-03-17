@@ -25,7 +25,9 @@ VALID_CATEGORIES = {
     "injection", "authentication", "authorization", "cryptography",
     "misconfiguration", "secrets-exposure", "dependency", "api-security",
     "network", "iam", "compliance", "privacy", "policy", "forensics",
-    "threat", "incident", "infrastructure", "code-quality", "other"
+    "threat", "incident", "infrastructure", "code-quality",
+    "lead-generation", "prospecting", "outreach", "crm", "project-management",
+    "billing", "client-reporting", "sow-contract", "other"
 }
 
 # ANSI colors for terminal output
@@ -91,6 +93,60 @@ def init_db(db_path=None):
             agent_name  TEXT,
             payload     TEXT,
             created_at  TEXT NOT NULL
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS leads (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            source      TEXT NOT NULL,
+            first_name  TEXT,
+            last_name   TEXT,
+            email       TEXT,
+            phone       TEXT,
+            linkedin    TEXT,
+            title       TEXT,
+            company     TEXT,
+            industry    TEXT,
+            company_size TEXT,
+            status      TEXT DEFAULT 'new',
+            score       INTEGER DEFAULT 0,
+            notes       TEXT,
+            created_at  TEXT NOT NULL,
+            updated_at  TEXT NOT NULL
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS projects (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_name TEXT NOT NULL,
+            service     TEXT NOT NULL,
+            status      TEXT DEFAULT 'proposal',
+            value       REAL DEFAULT 0,
+            start_date  TEXT,
+            end_date    TEXT,
+            milestones  TEXT,
+            notes       TEXT,
+            created_at  TEXT NOT NULL,
+            updated_at  TEXT NOT NULL
+        )
+    """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS invoices (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id  INTEGER,
+            client_name TEXT NOT NULL,
+            amount      REAL NOT NULL,
+            status      TEXT DEFAULT 'draft',
+            due_date    TEXT,
+            paid_date   TEXT,
+            line_items  TEXT,
+            notes       TEXT,
+            created_at  TEXT NOT NULL,
+            updated_at  TEXT NOT NULL,
+            FOREIGN KEY (project_id) REFERENCES projects(id)
         )
     """)
 
@@ -182,6 +238,162 @@ def log_finding(
     print(f"  {color}[{severity}]{RESET} {title} — {agent_name}")
 
     return finding_id
+
+
+def log_lead(
+    source,
+    first_name=None,
+    last_name=None,
+    email=None,
+    phone=None,
+    linkedin=None,
+    title=None,
+    company=None,
+    industry=None,
+    company_size=None,
+    status="new",
+    score=0,
+    notes=None,
+    db_path=None,
+):
+    """
+    Log a prospecting lead to the database.
+
+    Args:
+        source:       Lead source (e.g. 'linkedin', 'website', 'referral')
+        first_name:   Contact first name
+        last_name:    Contact last name
+        email:        Contact email address
+        phone:        Contact phone number
+        linkedin:     LinkedIn profile URL
+        title:        Job title
+        company:      Company name
+        industry:     Industry classification
+        company_size: Company size range
+        status:       Lead status (new, qualified, contacted, etc.)
+        score:        Lead scoring (0-100)
+        notes:        Additional notes
+        db_path:      Override default DB path
+
+    Returns:
+        int: lead ID
+    """
+    conn = init_db(db_path)
+    now = datetime.utcnow().isoformat() + "Z"
+
+    c = conn.cursor()
+    c.execute("""
+        INSERT INTO leads
+        (source, first_name, last_name, email, phone, linkedin, title, company,
+         industry, company_size, status, score, notes, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        source, first_name, last_name, email, phone, linkedin, title, company,
+        industry, company_size, status, score, notes, now, now
+    ))
+    conn.commit()
+    lead_id = c.lastrowid
+    conn.close()
+
+    print(f"  {GREEN}[LEAD]{RESET} {first_name} {last_name} ({company}) — score {score}")
+
+    return lead_id
+
+
+def log_project(
+    client_name,
+    service,
+    status="proposal",
+    value=0,
+    start_date=None,
+    end_date=None,
+    milestones=None,
+    notes=None,
+    db_path=None,
+):
+    """
+    Log a client project to the database.
+
+    Args:
+        client_name:  Client company name
+        service:      Service type (audit, assessment, etc.)
+        status:       Project status (proposal, active, completed)
+        value:        Project value in USD
+        start_date:   Project start date (ISO format)
+        end_date:     Project end date (ISO format)
+        milestones:   Milestone summary (JSON or text)
+        notes:        Additional notes
+        db_path:      Override default DB path
+
+    Returns:
+        int: project ID
+    """
+    conn = init_db(db_path)
+    now = datetime.utcnow().isoformat() + "Z"
+
+    c = conn.cursor()
+    c.execute("""
+        INSERT INTO projects
+        (client_name, service, status, value, start_date, end_date, milestones, notes, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        client_name, service, status, value, start_date, end_date, milestones, notes, now, now
+    ))
+    conn.commit()
+    project_id = c.lastrowid
+    conn.close()
+
+    print(f"  {GREEN}[PROJECT]{RESET} {client_name} — {service} (${value})")
+
+    return project_id
+
+
+def log_invoice(
+    client_name,
+    amount,
+    project_id=None,
+    status="draft",
+    due_date=None,
+    paid_date=None,
+    line_items=None,
+    notes=None,
+    db_path=None,
+):
+    """
+    Log a client invoice to the database.
+
+    Args:
+        client_name:  Client company name
+        amount:       Invoice amount in USD
+        project_id:   Associated project ID
+        status:       Invoice status (draft, sent, paid, overdue)
+        due_date:     Invoice due date (ISO format)
+        paid_date:    Payment date (ISO format)
+        line_items:   Line items (JSON or text)
+        notes:        Additional notes
+        db_path:      Override default DB path
+
+    Returns:
+        int: invoice ID
+    """
+    conn = init_db(db_path)
+    now = datetime.utcnow().isoformat() + "Z"
+
+    c = conn.cursor()
+    c.execute("""
+        INSERT INTO invoices
+        (project_id, client_name, amount, status, due_date, paid_date, line_items, notes, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        project_id, client_name, amount, status, due_date, paid_date, line_items, notes, now, now
+    ))
+    conn.commit()
+    invoice_id = c.lastrowid
+    conn.close()
+
+    print(f"  {GREEN}[INVOICE]{RESET} {client_name} — ${amount} ({status})")
+
+    return invoice_id
 
 
 def get_findings(severity=None, team=None, audit_id=None, db_path=None):

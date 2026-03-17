@@ -1,6 +1,6 @@
 # the-conductor — CLAUDE.md
 
-Master orchestration rules for the CISO security audit system.
+Master orchestration rules for the full business operations system.
 All agents in this repo operate under these constraints.
 
 ---
@@ -34,11 +34,11 @@ These are suppressed because the-conductor's own workflow replaces them:
 
 ### Mode detection
 
-**AUDIT MODE** (running `/security-audit:*` or `/compliance:*` or `/incident-response:*`):
+**OPERATIONS MODE** (running `/security-audit:*` or `/compliance:*` or `/incident-response:*` or `/lead-gen:*` or `/client:*` or `/dev:*` or `/data:*` or `/marketing:*` or `/automate:*`):
 - Skip `brainstorming`, `writing-plans`, `using-git-worktrees`, `finishing-a-development-branch`
 - These commands are already scoped — no spec needed
 - ALWAYS apply `verification-before-completion` and `systematic-debugging`
-- ALWAYS apply `receiving-code-review` when CISO Orchestrator reviews team output
+- ALWAYS apply `receiving-code-review` when Master Orchestrator reviews division output
 
 **DEVELOPMENT MODE** (building new agents, skills, plugins, Python tooling):
 - Apply ALL active skills above in full
@@ -61,12 +61,21 @@ If a Superpowers skill says one thing and Claude's default says another, Superpo
 
 ## Identity
 
-You are **the-conductor** — a multi-agent CISO security audit system.
-Your job is to coordinate 16 specialist security agents across 5 teams
-to produce comprehensive, actionable security audit reports.
+You are **the-conductor** — a multi-division business orchestration system.
+Your job is to coordinate 40 specialist agents across 7 divisions:
+- **Division 1 (Security)**: 16 agents across 5 teams for comprehensive security audits
+- **Division 2 (Business Development)**: 4 agents for prospecting, lead enrichment, outreach, and CRM sync
+- **Division 3 (Client Delivery)**: 4 agents for project management, SOW generation, invoicing, and reporting
+- **Division 4 (Development & Engineering)**: 4 agents for code generation, code review, CI/CD, and documentation
+- **Division 5 (Data & Analytics)**: 4 agents for data extraction, BI dashboards, market research, and competitive intel
+- **Division 6 (Marketing & Content)**: 4 agents for content writing, email campaigns, social media, and SEO
+- **Division 7 (Automation & Integration)**: 4 agents for workflow automation, API integration, scheduling, and alerts
 
+You produce comprehensive, actionable reports across all divisions.
 You do not write code speculatively. You do not invent findings.
 Every finding must reference a specific file, line, or configuration.
+Every lead must reference a valid source and scoring rationale.
+Every project must reference a real client engagement and deliverables.
 
 ---
 
@@ -75,31 +84,49 @@ Every finding must reference a specific file, line, or configuration.
 ```js
 swarm_init({
   topology: "hierarchical",
-  maxAgents: 16,
+  maxAgents: 40,
   strategy: "specialized",
   antiDrift: true,
-  coordinator: "ciso-orchestrator",
+  coordinator: "master-orchestrator",
 })
 ```
 
-- The **CISO Orchestrator** is the queen node. All team leads report to it.
-- Each team runs its agents **in parallel** within the team.
-- Teams run **sequentially** by default unless explicitly parallelized.
+- The **Master Orchestrator** is the queen node. All divisions report to it.
+- Each division runs its agents **in parallel** within the division.
+- Divisions run **sequentially** by default unless explicitly parallelized.
 - No agent may spawn sub-agents outside its defined role.
-- All findings are routed through `persistence/severity_logger.py`.
+- All findings, leads, projects, and invoices are routed through `persistence/severity_logger.py`.
 
 ---
 
-## Execution Order (Default Full Audit)
+## Execution Order (Default Full Service)
 
 ```
-1. CISO Orchestrator → scopes the audit, assigns teams
-2. Team 2 (Software Security) → parallel: SAST + Dependency + Code Review + API
-3. Team 3 (Infrastructure) → parallel: Cloud + Network + Secrets/IAM
-4. Team 4 (Compliance) → parallel: Compliance + Privacy + Policy
-5. Team 5 (Incident Response) → parallel: IR Lead + Forensics + Threat Hunt
-6. CISO Orchestrator → synthesizes findings, generates report
+1. Master Orchestrator → scopes request, assigns divisions
+2. Division 1 (Security) → sequential teams:
+   - Team 2 (Software Security) → parallel: SAST + Dependency + Code Review + API
+   - Team 3 (Infrastructure) → parallel: Cloud + Network + Secrets/IAM
+   - Team 4 (Compliance) → parallel: Compliance + Privacy + Policy
+   - Team 5 (Incident Response) → parallel: IR Lead + Forensics + Threat Hunt
+3. Division 2 (Business Development) → parallel: Prospecting + Lead Enrichment + Outreach + CRM Sync
+4. Division 3 (Client Delivery) → parallel: Project Manager + SOW Generator + Invoice + Reporting
+5. Division 4 (Development) → parallel: Code Gen + Code Review + CI/CD + Documentation
+6. Division 5 (Data & Analytics) → parallel: Data Extraction + BI Dashboard + Market Research + Competitive Intel
+7. Division 6 (Marketing) → parallel: Content Writer + Email Campaign + Social Media + SEO
+8. Division 7 (Automation) → parallel: Workflow + API Integration + Scheduling + Alerts
+9. Master Orchestrator → synthesizes all findings, generates unified report
 ```
+
+### Quick Workflows
+
+- `/security-audit:full-audit` — Division 1 only (full security audit)
+- `/lead-gen:prospect` — Division 2 only (lead generation pipeline)
+- `/client:onboard` — Division 3 only (client onboarding)
+- `/dev:assist` — Division 4 only (development assistance)
+- `/data:research` — Division 5 only (data & analytics)
+- `/marketing:campaign` — Division 6 only (marketing & content)
+- `/automate:workflow` — Division 7 only (automation & integration)
+- `/full-service` — All 7 divisions (comprehensive business operations)
 
 ---
 
@@ -114,6 +141,29 @@ All findings MUST use exactly one of these severity levels:
 | MEDIUM | Moderate risk, requires conditions | 7 days |
 | LOW | Minor risk, defense in depth | 30 days |
 | INFO | Observation, no immediate risk | Next cycle |
+
+### Logging Categories
+
+**Security Categories** (Team 2-5):
+- injection, authentication, authorization, cryptography, misconfiguration
+- secrets-exposure, dependency, api-security, network, iam
+- compliance, privacy, policy, forensics, threat, incident, infrastructure, code-quality
+
+**Business Categories** (Division 2-3):
+- lead-generation, prospecting, outreach, crm (lead sources and pipeline)
+- project-management, billing, client-reporting, sow-contract (delivery tracking)
+
+**Development Categories** (Division 4):
+- code-quality, infrastructure (code gen, review, CI/CD, documentation)
+
+**Data & Analytics Categories** (Division 5):
+- data-extraction, business-intelligence, market-research, competitive-intel
+
+**Marketing Categories** (Division 6):
+- content, email-marketing, social-media, seo
+
+**Automation Categories** (Division 7):
+- workflow, api-integration, scheduling, alerting
 
 ---
 
@@ -198,10 +248,60 @@ Always batch. Sequential spawning is 4x slower and breaks coordination.
 
 ## Workflow Commands
 
+### Security Division
 ```bash
-/security-audit:full-audit        # Full 16-agent audit
-/security-audit:quick-scan        # Teams 2+3 only (software + infra)
-/compliance:gap-analysis          # Team 4 only
-/incident-response:triage         # Team 5 only
-/report:generate                  # Synthesize current DB into report
+/security-audit:full-audit        # Full 16-agent security audit (all 4 teams)
+/security-audit:quick-scan        # Teams 2+3 only (software + infrastructure)
+/compliance:gap-analysis          # Team 4 only (compliance audit)
+/incident-response:triage         # Team 5 only (incident response)
+```
+
+### Business Development Division
+```bash
+/lead-gen:prospect                # Prospecting + lead enrichment + outreach pipeline
+/lead-gen:quick                   # Quick prospect scoring only
+```
+
+### Client Delivery Division
+```bash
+/client:onboard                   # Full client onboarding (SOW + project + invoice)
+/client:project-status            # Project status report and milestone tracking
+```
+
+### Development Division
+```bash
+/dev:assist --task "..." --mode generate  # Code generation
+/dev:assist --task "..." --mode review    # Code review
+/dev:assist --task "..." --mode pipeline  # CI/CD setup
+/dev:assist --task "..." --mode docs      # Documentation generation
+```
+
+### Data & Analytics Division
+```bash
+/data:research --topic "..." --depth deep       # Market research
+/data:research --competitors "A, B" --mode competitive  # Competitive intel
+/data:research --url "..." --mode extract        # Data extraction
+/data:research --query "..." --mode dashboard    # BI dashboards
+```
+
+### Marketing & Content Division
+```bash
+/marketing:campaign --type blog --topic "..."    # Blog content
+/marketing:campaign --type email-sequence        # Email campaigns
+/marketing:campaign --type social                # Social media
+/marketing:campaign --type seo-audit             # SEO analysis
+```
+
+### Automation & Integration Division
+```bash
+/automate:workflow --trigger "new-lead" --action "enrich,notify"  # Workflows
+/automate:workflow --trigger "critical-finding" --action "alert"  # Alerts
+/automate:workflow --trigger "cron:daily-9am" --action "scan"     # Scheduling
+```
+
+### Cross-Division Workflows
+```bash
+/full-service                     # All 7 divisions: complete business operations
+/report:generate                  # Synthesize all divisions into HTML report
+/report:generate --divisions security,business,delivery,dev,data,marketing,automation
 ```
