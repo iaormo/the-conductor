@@ -669,8 +669,34 @@ def resource_divisions() -> str:
 
 if __name__ == "__main__":
     import uvicorn
+    from starlette.applications import Starlette
+    from starlette.routing import Mount, Route
+    from starlette.responses import JSONResponse
+    from mcp.server.sse import SseServerTransport
+
     port = int(os.environ.get("PORT", 8080))
     host = os.environ.get("HOST", "0.0.0.0")
     print(f"the-conductor MCP server starting on {host}:{port}")
-    app = mcp.sse_app()
+
+    sse = SseServerTransport("/messages/")
+
+    async def handle_sse(request):
+        async with sse.connect_sse(
+            request.scope, request.receive, request._send
+        ) as (read_stream, write_stream):
+            await mcp._mcp_server.run(
+                read_stream, write_stream, mcp._mcp_server.create_initialization_options()
+            )
+
+    async def health(request):
+        return JSONResponse({"status": "ok", "service": "the-conductor-mcp"})
+
+    app = Starlette(
+        routes=[
+            Route("/health", health),
+            Route("/sse", endpoint=handle_sse),
+            Mount("/messages/", app=sse.handle_post_message),
+        ],
+    )
+
     uvicorn.run(app, host=host, port=port)
