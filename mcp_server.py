@@ -19,10 +19,7 @@ from mcp.server.fastmcp import FastMCP
 BASE_DIR = Path(__file__).parent
 DB_PATH = BASE_DIR / "persistence" / "audit.db"
 
-mcp = FastMCP(
-    "the-conductor",
-    description="Multi-division business orchestration: 40 agents across security, bizdev, delivery, dev, data, marketing, automation.",
-)
+mcp = FastMCP("the-conductor")
 
 # ---------------------------------------------------------------------------
 # Helpers
